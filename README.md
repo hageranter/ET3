@@ -18,14 +18,13 @@ dotnet run -- path/to/your/file.csv
 
 ## Input Format
 
-CSV with a header row: `id,area,priority,unit_weights`
+CSV with a header row: `id,area,priority,weight_kg,unit_weights`
 
 - `id`, `area`, `priority` — standard fields (unique id, delivery area, urgency — lower number = more urgent).
-- `unit_weights` — semicolon-separated weight (kg) of each individual unit in the request. A single item is just one number (e.g. `4.5`); a bundled request lists each unit's actual weight (e.g. `17;1` for two units weighing 17kg and 1kg). This replaces the assignment's single `weight` column and is what makes the "Extra Feature" below (splitting overweight requests) possible.
+- `weight_kg` — the package's total weight. Same field, same meaning as the assignment's original sample table — always present, used directly.
+- `unit_weights` — **optional**, blank for every normal delivery. Only filled in for a bundled request that might need splitting: a semicolon-separated list of each individual unit's actual weight (e.g. `17;1` for two units weighing 17kg and 1kg). This is what makes the "Extra Feature" below possible. It's read only when `weight_kg` exceeds the vehicle capacity — for a normal delivery it's not looked at at all.
 
-Two more values are derived from `unit_weights`, not stored separately:
-- **Package weight** (`TotalWeight`) — sum of `unit_weights`. For a normal single-item row this is just that one number, so it behaves exactly like the assignment's original `weight` column — `unit_weights` adds detail on top, it doesn't replace this.
-- **Quantity** — count of values in `unit_weights` (e.g. `17;1` → quantity 2).
+Note: `weight_kg` and `unit_weights` are not cross-checked against each other — see Known Limitations.
 
 Sample files in `SampleInput/`:
 - `sample_deliveries.csv` — exercises every rule and edge case described below.
@@ -67,11 +66,15 @@ The other tricky part was the package-splitting feature: my first version assume
 
 ## Extra Feature: Splittable Overweight Packages
 
-Instead of declining every delivery over the 10kg capacity outright, the program checks whether the request is actually divisible. The CSV records a request as `unit_weights` — the weight of every individual unit in that request (e.g. `17;1` for two units weighing 17kg and 1kg). My first version of this feature instead stored a single total `weight_kg` plus a `quantity`, and assumed every unit weighed the same (`unit_weight = weight_kg / quantity`), which made splitting a simple division. I chose to change it to record each unit's actual weight instead, to make the program more realistic — a bundled request rarely has perfectly identical items, and the uniform-weight assumption would silently give wrong answers for one that doesn't (e.g. 18kg over 2 units could really be 17kg + 1kg, not 9kg + 9kg).
+Instead of declining every delivery over the 10kg capacity outright, the program checks whether the request is actually divisible:
 
-With real per-unit weights, a request with `quantity > 1` represents multiple separate physical units, so if some of those units individually fit within capacity, they still get shipped — split into their own sub-deliveries — even if other units in the same request are too heavy to ever ship. Only units that are individually oversized are declined. This was chosen deliberately over an all-or-nothing approach: since the units are genuinely separate objects, there's no reason to hold a shippable unit hostage to an unrelated oversized one just because they arrived in the same request. Every declined unit is reported individually with the reason, so nothing is silently dropped.
+- If `weight_kg` is over capacity but `unit_weights` is blank (no breakdown given), it's treated like a single indivisible product — declined and reported, since there's no way to know how to divide it.
+- If `weight_kg` is over capacity and `unit_weights` is provided, splitting happens at the individual-unit level, using each unit's real weight rather than assuming they're all equal. My first version of this feature assumed every unit in a multi-unit request weighed the same (`total ÷ quantity`), which gives wrong answers for a real bundle of different-weight items (e.g. 18kg over 2 units could really be 17kg + 1kg, not 9kg + 9kg). Recording each unit's actual weight instead makes the program more realistic, at the cost of needing an extra optional column.
+
+Because units are genuinely separate physical objects, if some of them individually fit within capacity, they still get shipped — split into their own sub-deliveries — even if other units in the same request are too heavy to ever ship. Only the individually-oversized units are declined. This was chosen deliberately over an all-or-nothing approach: there's no reason to hold a shippable unit hostage to an unrelated oversized one just because they arrived in the same request. Every declined unit is reported individually with the reason, so nothing is silently dropped.
 
 ## Known Limitations
 
+- `weight_kg` and `unit_weights` are not cross-validated against each other. If a hand-edited file had a `weight_kg` that didn't match the true sum of its `unit_weights`, the mismatch wouldn't be caught — `weight_kg` decides whether splitting is attempted at all, and `unit_weights` (if present) is trusted as-is for how to divide it. Accepted as a trusted-input assumption rather than adding validation for a case the assignment doesn't require handling.
 - Duplicate delivery ids are not validated. This doesn't break packing, just makes the output slightly confusing to read if it happens.
-- The program trusts that each `unit_weights` value accurately reflects a real individual unit's weight; there is no way to verify this against the input alone (negative and zero weights are rejected, but there's no way to catch, say, a mistyped 5kg entered as 50kg).
+- Negative and zero weights are rejected, but there's no way to catch a plausible-but-wrong value, like a mistyped 5kg entered as 50kg.
