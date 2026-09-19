@@ -41,9 +41,8 @@ The program runs a straight pipeline: **read → split oversized packages → pa
 
 ## Most Difficult Part
 
-Getting the priority-vs-area tension right without quietly breaking the priority rule. An early version let any delivery fill leftover space in *any* previously opened trip, which packed tighter but could let a less-urgent delivery ship in an earlier trip than a more-urgent one purely because of leftover capacity — a subtle violation of "lower priority numbers should be handled first." Locking trips to a single priority tier fixes this completely, at the cost of occasionally wasting a little capacity at tier boundaries.
-
-The other tricky part was the package-splitting feature: my first version assumed every unit in a multi-unit request weighed the same (`total ÷ quantity`), which gives wrong answers for a real bundle of different-weight items. Switching the input to store each unit's actual weight, and bin-packing at the individual-unit level, fixed that but meant redesigning the CSV schema and the splitter after they'd already been written.
+- **Balancing priority and area without breaking the priority rule.** An early version let any delivery fill leftover space in any open trip. That packed tighter, but could let a less-urgent delivery ship in an earlier trip than a more-urgent one, just because there was room — a quiet violation of "lower priority handled first." Fix: lock each trip to a single priority tier. Trade-off: a little capacity gets wasted at tier boundaries.
+- **Splitting packages correctly.** My first version assumed every unit in a multi-unit request weighed the same (`total ÷ quantity`). That's wrong for a real bundle of different-weight items. Fix: store and split on each unit's actual weight instead — meant redesigning the CSV format and the splitter after they were already written.
 
 ## Situations Where the Grouping May Not Be Optimal
 
@@ -75,6 +74,6 @@ Because units are genuinely separate physical objects, if some of them individua
 
 ## Known Limitations
 
-- `weight_kg` and `unit_weights` are not cross-validated against each other. If a hand-edited file had a `weight_kg` that didn't match the true sum of its `unit_weights`, the mismatch wouldn't be caught — `weight_kg` decides whether splitting is attempted at all, and `unit_weights` (if present) is trusted as-is for how to divide it. Accepted as a trusted-input assumption rather than adding validation for a case the assignment doesn't require handling.
-- Duplicate delivery ids are not validated. This doesn't break packing, just makes the output slightly confusing to read if it happens.
-- Negative and zero weights are rejected, but there's no way to catch a plausible-but-wrong value, like a mistyped 5kg entered as 50kg.
+- **`weight_kg` and `unit_weights` aren't cross-checked.** If they disagreed in a hand-edited file, the mismatch wouldn't be caught — `weight_kg` alone decides whether to split, `unit_weights` is trusted as-is for how.
+- **Duplicate delivery ids aren't validated.** Doesn't break packing, just makes the output slightly confusing to read.
+- **Negative/zero weights are rejected, but plausible-but-wrong values aren't.** A mistyped 5kg entered as 50kg would pass through unnoticed.
