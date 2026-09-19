@@ -47,15 +47,15 @@ The other tricky part was the package-splitting feature: my first version assume
 
 ## Situations Where the Grouping May Not Be Optimal
 
-- **Trips never mix priorities, so some space goes unused.** If a priority-1 trip ends with 3kg of empty space, a priority-2 delivery that would fit there still can't use it — it has to start a new trip instead. This is on purpose (it's what keeps the priority rule airtight), but it means the packing isn't as tight as it could be.
-- **Deliveries go into the first trip that fits, not the best one.** Within a priority group, each delivery is placed into the first trip with room (same area preferred), without checking every possible arrangement. A different order could sometimes fit everything into fewer trips.
-- **Splitting is fast, not perfect.** When a package needs to be split, it uses a simple, well-known method (biggest units first, into the first part with room). This usually works well, but a more thorough approach could occasionally use one less part.
+- **Trips never mix priorities**, so leftover space at a tier boundary can't be reused — on purpose, to keep the priority rule absolute.
+- **Deliveries go into the first trip that fits, not the best one** — a different order could sometimes pack everything into fewer trips.
+- **Splitting uses a fast, well-known method (first-fit-decreasing), not a guaranteed-optimal one** — it can occasionally use one extra part.
 
 ## At 1,000,000 Deliveries
 
-- **Finding a trip gets slower as the list grows.** For every delivery, the program checks all trips opened so far in that priority group to find one with room. With that many deliveries, this checking adds up and the program would noticeably slow down.
-- **The whole input file loads into memory at once.** The program reads the entire file before processing any of it. At 1,000,000+ rows, that's a lot of data held in memory at the same time — reading it one line at a time instead would use far less memory.
-- **Sorting and grouping adds some overhead.** Grouping deliveries by priority and area creates extra copies of the data behind the scenes. Not noticeable on a small file, but it adds up at a very large scale.
+- **Placing each delivery gets slower as more trips exist.** The program checks every trip made so far to find one with room — at that scale, this adds up and slows things down.
+- **The whole file loads into memory before anything is processed.** Reading it one line at a time instead would use far less memory.
+- **Grouping deliveries by priority and area adds a little overhead**, which becomes noticeable at that scale.
 
 ## What I'd Improve With Another Day
 
