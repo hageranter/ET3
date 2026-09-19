@@ -21,7 +21,7 @@ dotnet run -- path/to/your/file.csv
 CSV with a header row: `id,area,priority,weight_kg,unit_weights`
 
 - `id`, `area`, `priority` — standard fields (unique id, delivery area, urgency — lower number = more urgent).
-- `weight_kg` — the package's total weight. Same field, same meaning as the assignment's original sample table — always present, used directly.
+- `weight_kg` — the package's total weight.
 - `unit_weights` — **optional**, blank for every normal delivery. Only filled in for a bundled request that might need splitting: a semicolon-separated list of each individual unit's actual weight (e.g. `17;1` for two units weighing 17kg and 1kg). This is what makes the "Extra Feature" below possible. It's read only when `weight_kg` exceeds the vehicle capacity — for a normal delivery it's not looked at at all.
 
 Note: `weight_kg` and `unit_weights` are not cross-checked against each other — see Known Limitations.
