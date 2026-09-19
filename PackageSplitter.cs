@@ -17,6 +17,12 @@ public static class PackageSplitter
                 continue;
             }
 
+            if (delivery.UnitWeights.Count == 0)
+            {
+                excluded.Add($"Delivery {delivery.Id} ({delivery.Area}): {delivery.TotalWeight}kg exceeds {capacityKg}kg capacity and no unit breakdown was provided - cannot split.");
+                continue;
+            }
+
             var tooHeavy = delivery.UnitWeights.Where(w => w > capacityKg).ToList();
             var shippable = delivery.UnitWeights.Where(w => w <= capacityKg).ToList();
 
@@ -62,6 +68,7 @@ public static class PackageSplitter
                     $"{delivery.Id}-part{i + 1}",
                     delivery.Area,
                     delivery.Priority,
+                    partTotals[i],
                     partWeights[i]));
             }
         }

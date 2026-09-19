@@ -22,18 +22,23 @@ public static class DeliveryFileReader
                 string id = parts[0];
                 string area = parts[1];
                 int priority = int.Parse(parts[2]);
+                double weightKg = double.Parse(parts[3]);
 
-                var unitWeights = parts[3]
-                    .Split(';')
-                    .Select(w => double.Parse(w.Trim()))
-                    .ToList();
+                if (weightKg <= 0)
+                {
+                    throw new FormatException($"package weight must be positive (found {weightKg}kg)");
+                }
+
+                var unitWeights = (parts.Length > 4 && parts[4].Trim().Length > 0)
+                    ? parts[4].Split(';').Select(w => double.Parse(w.Trim())).ToList()
+                    : new List<double>();
 
                 if (unitWeights.Any(w => w <= 0))
                 {
                     throw new FormatException($"unit weight must be positive (found {unitWeights.First(w => w <= 0)}kg)");
                 }
 
-                deliveries.Add(new Delivery(id, area, priority, unitWeights));
+                deliveries.Add(new Delivery(id, area, priority, weightKg, unitWeights));
             }
             catch (Exception ex)
             {

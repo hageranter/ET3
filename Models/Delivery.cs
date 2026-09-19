@@ -5,16 +5,15 @@ public class Delivery
     public string Id { get; }
     public string Area { get; }
     public int Priority { get; }
+    public double TotalWeight { get; }
     public List<double> UnitWeights { get; }
 
-    public double TotalWeight => UnitWeights.Sum();
-    public int Quantity => UnitWeights.Count;
-
-    public Delivery(string id, string area, int priority, List<double> unitWeights)
+    public Delivery(string id, string area, int priority, double totalWeight, List<double> unitWeights)
     {
         Id = id;
         Area = area;
         Priority = priority;
+        TotalWeight = totalWeight;
         UnitWeights = unitWeights;
     }
 }
