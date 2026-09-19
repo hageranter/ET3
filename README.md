@@ -77,3 +77,10 @@ Because units are genuinely separate physical objects, if some of them individua
 - **`weight_kg` and `unit_weights` aren't cross-checked.** If they disagreed in a hand-edited file, the mismatch wouldn't be caught — `weight_kg` alone decides whether to split, `unit_weights` is trusted as-is for how.
 - **Duplicate delivery ids aren't validated.** Doesn't break packing, just makes the output slightly confusing to read.
 - **Negative/zero weights are rejected, but plausible-but-wrong values aren't.** A mistyped 5kg entered as 50kg would pass through unnoticed.
+
+## Tools Used
+
+- **Claude Code** (Anthropic's AI coding agent) — I designed every decision myself first (the tier-isolation algorithm, the splitting logic, the partial-fulfillment call, the CSV schema), then used Claude Code as an implementation partner: reviewing every file it wrote and pushing back whenever something didn't match what I wanted — for example, rejecting an early uniform-weight assumption in the splitting logic, and catching an inaccurate line in an earlier draft of this README.
+- **`state.md`** (included in this repo) — my own running design log, kept throughout the build to record every decision and trade-off as I made it, so I always had a clear record to check the implementation against.
+
+I have hands-on experience directing AI coding agents and agentic workflows, and that's how I approach them here too: a way to move faster on a plan I own and fully understand, not a substitute for understanding it myself.
