@@ -20,6 +20,8 @@ dotnet run -- path/to/your/file.csv
 
 CSV with a header row: `id,area,priority,unit_weights`
 
+Note: this replaces the single `weight` column from the assignment's sample table with `unit_weights`. The assignment allows choosing/documenting the input format freely, and this change is what makes the "Extra Feature" below (splitting overweight requests) possible — see that section for why.
+
 - `id` — unique identifier for the delivery request.
 - `area` — delivery area name.
 - `priority` — lower number = more urgent, handled first.
