@@ -61,7 +61,7 @@ The other tricky part was the package-splitting feature: my first version assume
 
 - Replace the linear trip search in `PackTier` with a lookup keyed by area (e.g. a dictionary of open trips per area) to avoid rescanning every trip for every delivery.
 - Make `DeliveryFileReader` stream the file instead of loading it fully into memory, for very large inputs.
-- Add basic input validation for nonsensical values (negative or zero weights), currently a known limitation — see below.
+- Add validation that `weight_kg` actually matches the sum of `unit_weights` instead of trusting both as-is — see Known Limitations.
 - Add automated tests instead of relying on the hand-traced sample data for verification.
 
 ## Extra Feature: Splittable Overweight Packages
