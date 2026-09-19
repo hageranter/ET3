@@ -20,12 +20,12 @@ dotnet run -- path/to/your/file.csv
 
 CSV with a header row: `id,area,priority,unit_weights`
 
-Note: this replaces the single `weight` column from the assignment's sample table with `unit_weights`. The assignment allows choosing/documenting the input format freely, and this change is what makes the "Extra Feature" below (splitting overweight requests) possible — see that section for why.
+- `id`, `area`, `priority` — standard fields (unique id, delivery area, urgency — lower number = more urgent).
+- `unit_weights` — semicolon-separated weight (kg) of each individual unit in the request. A single item is just one number (e.g. `4.5`); a bundled request lists each unit's actual weight (e.g. `17;1` for two units weighing 17kg and 1kg). This replaces the assignment's single `weight` column and is what makes the "Extra Feature" below (splitting overweight requests) possible.
 
-- `id` — unique identifier for the delivery request.
-- `area` — delivery area name.
-- `priority` — lower number = more urgent, handled first.
-- `unit_weights` — semicolon-separated weight (kg) of each individual unit in the request. A single item is just one number (e.g. `4.5`); a bundled request of several units lists each one's actual weight (e.g. `17;1` for two units weighing 17kg and 1kg).
+Two more values are derived from `unit_weights`, not stored separately:
+- **Package weight** (`TotalWeight`) — sum of `unit_weights`. For a normal single-item row this is just that one number, so it behaves exactly like the assignment's original `weight` column — `unit_weights` adds detail on top, it doesn't replace this.
+- **Quantity** — count of values in `unit_weights` (e.g. `17;1` → quantity 2).
 
 Sample files in `SampleInput/`:
 - `sample_deliveries.csv` — exercises every rule and edge case described below.
