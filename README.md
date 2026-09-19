@@ -47,15 +47,15 @@ The other tricky part was the package-splitting feature: my first version assume
 
 ## Situations Where the Grouping May Not Be Optimal
 
-- **Tier boundaries waste capacity.** If a priority tier's last trip has, say, 3kg of unused space, the next tier is not allowed to use it, even if one of its deliveries would fit — trips never mix priorities. This is deliberate (it makes the priority guarantee absolute) but it means the result isn't the tightest possible packing.
-- **Area placement is greedy, not globally optimal.** Within a tier, each delivery is placed into the first trip that fits (preferring same area), not re-evaluated against every possible arrangement. A different processing order could occasionally produce fewer trips or tighter area clustering.
-- **Splitting uses first-fit-decreasing bin packing**, a well-known approximation. It's simple and generally good but isn't guaranteed to use the mathematically minimum number of parts in every case.
+- **Trips never mix priorities, so some space goes unused.** If a priority-1 trip ends with 3kg of empty space, a priority-2 delivery that would fit there still can't use it — it has to start a new trip instead. This is on purpose (it's what keeps the priority rule airtight), but it means the packing isn't as tight as it could be.
+- **Deliveries go into the first trip that fits, not the best one.** Within a priority group, each delivery is placed into the first trip with room (same area preferred), without checking every possible arrangement. A different order could sometimes fit everything into fewer trips.
+- **Splitting is fast, not perfect.** When a package needs to be split, it uses a simple, well-known method (biggest units first, into the first part with room). This usually works well, but a more thorough approach could occasionally use one less part.
 
 ## At 1,000,000 Deliveries
 
-- `TripPlanner.PackTier` searches through all trips opened so far for every delivery it places (`trips.FirstOrDefault(...)`). Within a very large single priority tier, this is effectively O(n²) and would get noticeably slow.
-- `DeliveryFileReader` loads the entire file into memory at once (`File.ReadAllLines`) and builds every `Delivery` object up front. At 1,000,000+ rows this holds a large amount of data in memory simultaneously; a streaming, line-by-line reader would scale much better.
-- The `GroupBy`/`OrderBy` calls used to form priority tiers and area groups allocate intermediate collections — fine at small scale, but extra overhead at very large scale.
+- **Finding a trip gets slower as the list grows.** For every delivery, the program checks all trips opened so far in that priority group to find one with room. With that many deliveries, this checking adds up and the program would noticeably slow down.
+- **The whole input file loads into memory at once.** The program reads the entire file before processing any of it. At 1,000,000+ rows, that's a lot of data held in memory at the same time — reading it one line at a time instead would use far less memory.
+- **Sorting and grouping adds some overhead.** Grouping deliveries by priority and area creates extra copies of the data behind the scenes. Not noticeable on a small file, but it adds up at a very large scale.
 
 ## What I'd Improve With Another Day
 
