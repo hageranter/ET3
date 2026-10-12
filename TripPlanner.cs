@@ -4,7 +4,7 @@ namespace DeliveryRoutePlanner;
 
 public static class TripPlanner
 {
-    public static List<Trip> PlanTrips(List<Delivery> deliveries, double capacityKg)
+    public static List<Trip> PlanTrips(List<Delivery> deliveries, double capacityKg, int maxDeliveries)
     {
         var allTrips = new List<Trip>();
 
@@ -14,14 +14,14 @@ public static class TripPlanner
 
         foreach (var tier in tiers)
         {
-            var tierTrips = PackTier(tier.ToList(), capacityKg);
+            var tierTrips = PackTier(tier.ToList(), capacityKg, maxDeliveries);
             allTrips.AddRange(tierTrips);
         }
 
         return allTrips;
     }
 
-    private static List<Trip> PackTier(List<Delivery> tierDeliveries, double capacityKg)
+    private static List<Trip> PackTier(List<Delivery> tierDeliveries, double capacityKg, int maxDeliveries)
     {
         var trips = new List<Trip>();
 
@@ -33,10 +33,13 @@ public static class TripPlanner
             {
                 var sameAreaTrip = trips.FirstOrDefault(t =>
                     t.Deliveries.Any(d => d.Area == delivery.Area) &&
-                    t.TotalWeight + delivery.TotalWeight <= capacityKg);
+                    t.TotalWeight + delivery.TotalWeight <= capacityKg &&
+                    t.Deliveries.Count < maxDeliveries);
 
                 var targetTrip = sameAreaTrip
-                    ?? trips.FirstOrDefault(t => t.TotalWeight + delivery.TotalWeight <= capacityKg);
+                    ?? trips.FirstOrDefault(t =>
+                        t.TotalWeight + delivery.TotalWeight <= capacityKg &&
+                        t.Deliveries.Count < maxDeliveries);
 
                 if (targetTrip == null)
                 {

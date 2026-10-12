@@ -43,7 +43,7 @@ public static class PackageSplitter
                 int fitIndex = -1;
                 for (int i = 0; i < partTotals.Count; i++)
                 {
-                    if (partTotals[i] + weight <= capacityKg)
+                    if (partTotals[i] + weight <= capacityKg) // the wieght  of the current one + the new one 
                     {
                         fitIndex = i;
                         break;

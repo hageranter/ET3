@@ -1,6 +1,6 @@
 # Delivery Route Planner
 
-A small console program that groups delivery requests into vehicle trips, respecting priority, area, and a 10kg capacity per trip.
+A small console program that groups delivery requests into vehicle trips, respecting priority, area, a 10kg capacity per trip, and a maximum of 3 deliveries per trip.
 
 ## How to Run
 
@@ -36,7 +36,7 @@ The program runs a straight pipeline: **read → split oversized packages → pa
 
 1. **Read** (`DeliveryFileReader`): parses the CSV into `Delivery` objects. Malformed rows are skipped and reported rather than crashing the whole run.
 2. **Split** (`PackageSplitter`): any request whose total weight exceeds the 10kg capacity is handled at the individual-unit level. Units that are individually too heavy to ever fit in a trip are excluded and reported by themselves; the remaining units are bin-packed (largest-first, "first-fit-decreasing") into as few sub-deliveries as possible, each within capacity. If a request has both shippable and unshippable units, the shippable ones still go out — only the oversized units are declined.
-3. **Pack** (`TripPlanner`): deliveries are grouped into priority tiers, processed strictly from most to least urgent. **A trip never contains two different priority values** — once a tier is fully packed, its trips are locked and the next tier always starts a new trip. This guarantees priority is never violated: a more urgent delivery can never end up in a later trip than a less urgent one. Within a tier, deliveries are grouped by area, and each one is placed into a same-area trip with room if one exists, otherwise any other trip in the tier with room, otherwise a new trip.
+3. **Pack** (`TripPlanner`): deliveries are grouped into priority tiers, processed strictly from most to least urgent. **A trip never contains two different priority values** — once a tier is fully packed, its trips are locked and the next tier always starts a new trip. This guarantees priority is never violated: a more urgent delivery can never end up in a later trip than a less urgent one. Within a tier, deliveries are grouped by area, and each one is placed into a same-area trip with room if one exists, otherwise any other trip in the tier with room, otherwise a new trip. A trip "has room" only if adding the delivery keeps it within 10kg **and** the trip currently holds fewer than 3 deliveries (`maxDeliveriesPerTrip` in `Program.cs`). Each split part (e.g. `8-part1`) counts as one delivery toward that limit.
 4. **Report** (`ReportPrinter`): prints each trip's contents and total weight, then a summary of trip/delivery counts and everything excluded (with a reason).
 
 ## Most Difficult Part
@@ -48,6 +48,7 @@ The program runs a straight pipeline: **read → split oversized packages → pa
 
 - **Trips never mix priorities**, so leftover space at a tier boundary can't be reused — on purpose, to keep the priority rule absolute.
 - **Deliveries go into the first trip that fits, not the best one** — a different order could sometimes pack everything into fewer trips.
+- **The 3-deliveries limit can force extra trips** — several light deliveries that would fit together by weight still need a new trip after every third one.
 - **Splitting uses a fast, well-known method (first-fit-decreasing), not a guaranteed-optimal one** — it can occasionally use one extra part.
 
 ## At 1,000,000 Deliveries

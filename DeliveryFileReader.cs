@@ -31,7 +31,7 @@ public static class DeliveryFileReader
 
                 var unitWeights = (parts.Length > 4 && parts[4].Trim().Length > 0)
                     ? parts[4].Split(';').Select(w => double.Parse(w.Trim())).ToList()
-                    : new List<double>();
+                    : new List<double>(); //Ternary Operator
 
                 if (unitWeights.Any(w => w <= 0))
                 {
